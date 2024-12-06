@@ -1,0 +1,57 @@
+.seo-bar {
+    display: flex;
+}
+
+.seo-bar .seo-item {
+    flex: 1;
+    text-align: center;
+    padding: 20px;
+    color: white;
+    font-weight: bold;
+    position: relative;
+}
+
+.seo-bar .seo-item a {
+    color: white;
+    text-decoration: none;
+    display: block;
+}
+
+/* .seo-item.keywords { background-color: #E66A37; } */
+.seo-item.on-page, .seo-item.off-page, .seo-item.ranking { background-color: #145874; }
+
+/* Hover effect */
+.seo-bar .seo-item:hover {
+    background-color: #1A7A98;
+}
+
+/* Active state */
+.seo-bar .seo-item.active {
+    background-color: #E66A37;
+}
+
+
+
+button.btn.addtext {
+    background-color: #e66a37;
+    color: white;
+    padding: 10px;
+}
+.cancelbtndiv {
+    text-align: end;
+}
+
+
+
+.newbt thead th:first-child {
+    width: 66px;
+}
+
+
+td.action-btns {
+    text-align: center;
+    padding: 4px 0px 4px 0px;
+}
+th.action {
+    text-align: center;
+}

@@ -1,0 +1,23 @@
+i.input-helper {
+    width: 20px;
+    position: absolute;
+    height: 20px;
+    border: 1px solid #b1b1b1;
+    left: 0;
+    right: 0;
+    border-radius: 3px;
+}
+
+.auth .login-half-bg {
+    background: url(../images/loginsidebg.jpg)!important;
+    background-size: cover!important;
+}
+.create_link {
+    text-decoration: none;
+    color: #6640b2 !important;
+}
+
+.auth form .auth-form-btn {
+    height: 40px!important;
+    line-height: 0.5!important;
+}
