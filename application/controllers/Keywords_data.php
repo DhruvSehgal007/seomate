@@ -31,40 +31,32 @@ class Keywords_data extends CI_Controller {
 
 
 
-
-
     public function save_keywords_data() {
-        $this->load->model('Keywords_data_model');
-    
-        // Get POST data
         $project_id = $this->input->post('project_id');
-        $keywords = $this->input->post('keywords');  // Make sure 'keywords' is coming as a string or array
+        $keywords = $this->input->post('keywords'); // Expecting a comma-separated string or an array
     
         if (empty($project_id) || empty($keywords)) {
             echo json_encode(['status' => 'error', 'message' => 'Invalid data provided.']);
             return;
         }
     
-        // If keywords are entered as a single string, convert them to an array
         if (is_string($keywords)) {
-            $keywords = explode(',', $keywords);  // Convert the comma-separated string into an array
+            $keywords = explode(',', $keywords); // Convert to an array if it is a comma-separated string
         }
     
-        // Insert each keyword into the database
         foreach ($keywords as $keyword) {
             $data = [
                 'project_id' => $project_id,
-                'keywords' => trim($keyword),  // Make sure to trim any extra spaces
+                'keywords' => trim($keyword),
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
-    
-            // Insert data
             $this->Keywords_data_model->insert_keywords_data($data);
         }
     
         echo json_encode(['status' => 'success']);
     }
+    
 
     
   

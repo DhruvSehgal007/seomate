@@ -16,6 +16,10 @@ class Project extends CI_Controller {
         $clients = $this->Project_model->get_clients();
         echo json_encode($clients);
     }
+    public function get_projects_ajax() {
+        $projects = $this->Project_model->get_off_projects();
+        echo json_encode($projects);
+    }
 
     public function get_projects() {
         $projects = $this->Project_model->get_all_projects();
@@ -29,7 +33,8 @@ class Project extends CI_Controller {
 
     public function submit_project() {
         $data = array(
-            'client_name'   => $this->input->post('client_id'),
+            // 'company_name'   => $this->input->post('client_id'),
+            'company_name'   => $this->input->post('company_id'),
             'project_name'  => $this->input->post('project_name'),
             'website_link'  => $this->input->post('website_link'),
             'created_at'    => date('Y-m-d H:i:s'),
@@ -48,7 +53,7 @@ class Project extends CI_Controller {
         $data = array(
             'project_name' => $this->input->post('project_name'),
             'website_link' => $this->input->post('website_link'),
-            'client_name'  => $this->input->post('client_id'),
+            'company_name'  => $this->input->post('client_id'),
             'updated_at'   => date('Y-m-d H:i:s')
         );
 
@@ -85,5 +90,35 @@ class Project extends CI_Controller {
             echo "No projects found!";
         }
     }
+
+
+
+
+    public function get_offpage_categories() {
+        $this->load->model('Project_model');
+        $categories = $this->Project_model->get_all_offpage_categories();
+        echo json_encode(['categories' => $categories]);
+    }
+
+
+    public function add_offpage_numbers() {
+        $project_id = $this->input->post('project_id');
+        $project_name = $this->input->post('project_name');
+        $category_ids = $this->input->post('category_id');
+        $numbers = $this->input->post('numbers');
+    
+        if (empty($project_id) || empty($project_name) || empty($category_ids) || empty($numbers)) {
+            echo json_encode(['status' => 'error', 'message' => 'Incomplete data provided.']);
+            return;
+        }
+    
+        for ($i = 0; $i < count($category_ids); $i++) {
+            $this->Project_model->insert_data($project_id, $project_name, $category_ids[$i], $numbers[$i]);
+        }
+    
+        echo json_encode(['status' => 'success', 'message' => 'Data inserted successfully!']);
+    }
+    
+    
     
 }

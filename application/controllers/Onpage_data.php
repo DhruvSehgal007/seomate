@@ -24,134 +24,121 @@ class Onpage_data extends CI_Controller {
         $this->load->view('admin/footer');
     }
 
-    public function fetch_categories() {
-        $categories = $this->Onpage_data_model->get_all_categories();
-        echo json_encode($categories); // Return categories as JSON
+    public function fetch_on_page_categories() {
+        $this->load->model('Onpage_data_model'); // Load the model
+        $categories = $this->Onpage_data_model->get_all_on_page_categories(); // Fetch categories
+        
+        if (!empty($categories)) {
+            echo json_encode(['status' => 'success', 'data' => $categories]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No categories found.']);
+        }
     }
-
-    public function fetch_sub_categories($category_id) {
-        $subCategories = $this->Onpage_data_model->get_sub_categories_by_category_id($category_id);
-        echo json_encode($subCategories); // Return subcategories as JSON
+    
+    
+    public function fetch_categories_with_subcategories() {
+        $this->load->model('Onpage_data_model'); // Load the model
+    
+        $data = $this->Onpage_data_model->get_categories_with_subcategories(); // Fetch categories and subcategories
+        
+        $categories = [];
+        foreach ($data as $row) {
+            $categoryId = $row['category_id'];
+            if (!isset($categories[$categoryId])) {
+                $categories[$categoryId] = [
+                    'category_id' => $row['category_id'],
+                    'on_category_name' => $row['on_category_name'],
+                    'subcategories' => [],
+                ];
+            }
+            if (!empty($row['sub_category_id'])) {
+                $categories[$categoryId]['subcategories'][] = [
+                    'sub_category_id' => $row['sub_category_id'],
+                    'sub_category_name' => $row['sub_category_name'],
+                ];
+            }
+        }
+    
+        if (!empty($categories)) {
+            echo json_encode(['status' => 'success', 'data' => array_values($categories)]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No categories or subcategories found.']);
+        }
     }
-
-    // public function save_onpage_data() {
-    //     $id = $this->input->post('id'); // Check if it's an update or insert
-    //     $project_id = $this->input->post('project_id');
-    //     $on_page_category = $this->input->post('on_page_category');
-    //     $on_page_sub_categories = $this->input->post('on_page_sub_category'); // This should be an array
     
-    //     // Ensure that on_page_sub_categories is an array
-    //     if (!is_array($on_page_sub_categories)) {
-    //         $on_page_sub_categories = []; // Initialize as empty array if it's not
-    //     }
+    public function insert_onpage_data() {
+        // Retrieve POST data
+        $projectId = $this->input->post('project_id'); // Project ID
+        $selectedData = $this->input->post('selected_data'); // Data array, should match the sent name
     
-    //     if (!empty($project_id) && !empty($on_page_category) && !empty($on_page_sub_categories)) {
-    //         $data = [
-    //             'project_id' => $project_id,
-    //             'on_page_category' => $on_page_category,
-    //             'on_page_sub_category' => implode(',', $on_page_sub_categories), // Convert array to comma-separated string
-    //             'updated_at' => date('Y-m-d H:i:s'),
-    //         ];
-    
-    //         if ($id) {
-    //             // Update existing record
-    //             $this->db->where('id', $id);
-    //             $this->db->update('onpage_data', $data);
-    //             echo json_encode(['status' => 'success']);
-    //         } else {
-    //             // Insert new record
-    //             $data['created_at'] = date('Y-m-d H:i:s');
-    //             $this->db->insert('onpage_data', $data);
-    //             echo json_encode(['status' => 'success']);
-    //         }
-    //     } else {
-    //         echo json_encode(['status' => 'error', 'message' => 'Invalid data provided.']);
-    //     }
-    // }
-
-    public function save_onpage_data() {
-        $id = $this->input->post('id'); // Check if it's an update or insert
-        $project_id = $this->input->post('project_id');
-        $on_page_category = $this->input->post('on_page_category');
-        $on_page_sub_categories = $this->input->post('on_page_sub_category'); // Array of selected subcategories
-    
-        // Convert subcategories to a comma-separated string
-        $subCategoryString = implode(',', $on_page_sub_categories);
-    
-        // Check for existing entry
-        if ($this->Onpage_data_model->entry_exists($project_id, $on_page_category, $subCategoryString)) {
-            echo json_encode(['status' => 'error', 'message' => 'This entry already exists.']);
+        // Validate input data
+        if (empty($projectId) || empty($selectedData) || !is_array($selectedData)) {
+            echo json_encode(['status' => 'error', 'message' => 'Project ID or selected data is missing or invalid.']);
             return;
         }
     
-        if (!empty($project_id) && !empty($on_page_category) && !empty($on_page_sub_categories)) {
-            $data = [
-                'project_id' => $project_id,
-                'on_page_category' => $on_page_category,
-                'on_page_sub_category' => $subCategoryString,
-                'updated_at' => date('Y-m-d H:i:s'),
-            ];
+        // Prepare data for insertion
+        $insertData = [];
+        foreach ($selectedData as $data) {
+            $categoryId = $data['category_id'];
+            $subcategories = isset($data['subcategories']) ? $data['subcategories'] : [];
     
-            if ($id) {
-                // Update existing record
-                $this->db->where('id', $id);
-                $this->db->update('onpage_data', $data);
-                echo json_encode(['status' => 'success']);
+            if (empty($subcategories)) {
+                // Insert only the category (no subcategories)
+                $insertData[] = [
+                    'project_id' => $projectId,
+                    'on_page_category' => $categoryId,
+                    'on_page_sub_category' => null,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ];
             } else {
-                // Insert new record
-                $data['created_at'] = date('Y-m-d H:i:s');
-                $this->db->insert('onpage_data', $data);
-                echo json_encode(['status' => 'success']);
+                // Insert each subcategory with its parent category
+                foreach ($subcategories as $subcategory) {
+                    $subcategoryId = $subcategory['id']; // Use 'id' from subcategory data
+                    $insertData[] = [
+                        'project_id' => $projectId,
+                        'on_page_category' => $categoryId,
+                        'on_page_sub_category' => $subcategoryId,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ];
+                }
             }
+        }
+    
+        // Load the model and insert data
+        $this->load->model('Onpage_data_model');
+        $result = $this->Onpage_data_model->insert_onpage_data_batch($insertData);
+    
+        // Return response based on the insertion result
+        if ($result) {
+            echo json_encode(['status' => 'success', 'message' => 'Data inserted successfully.']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid data provided.']);
+            echo json_encode(['status' => 'error', 'message' => 'Failed to insert data.']);
         }
     }
     
-    
-    
 
-    public function get_onpage_data($project_id) {
+    
+    public function fetch_onpage_data($project_id = null) {
+        if ($project_id === null) {
+            echo json_encode(['status' => 'error', 'message' => 'Project ID is required.']);
+            return;
+        }
+    
+        $this->load->model('Onpage_data_model');
         $data = $this->Onpage_data_model->get_onpage_data_by_project($project_id);
-        echo json_encode(['data' => $data]);
-    }
-
-// 
-
-
-
-    public function delete_onpage_data($id) {
-        // Call the model to delete the entry
-        $deleted = $this->Onpage_data_model->delete_onpage_data($id);
     
-        // Send JSON response based on whether the deletion was successful
-        if ($deleted) {
-            echo json_encode(['status' => 'success']);
+        if (!empty($data)) {
+            echo json_encode(['status' => 'success', 'data' => $data]);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Record not found or deletion failed']);
+            echo json_encode(['status' => 'error', 'message' => 'No data found for the selected project.']);
         }
     }
-
-    public function edit_onpage_data($id) {
-        $data = $this->Onpage_data_model->get_onpage_data_by_id($id);
-        
-        // Fetch categories
-        $categories = $this->Onpage_data_model->get_all_categories();
-        
-        // Fetch sub-categories for the selected category (based on the on_page_category)
-        $subCategories = $this->Onpage_data_model->get_sub_categories_by_category_id($data['on_page_category']);
-        
-        // Return data to the frontend
-        echo json_encode([
-            'data' => $data,
-            'categories' => $categories,
-            'subCategories' => $subCategories
-        ]);
-    }
     
     
     
-
    
 }
 

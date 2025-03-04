@@ -95,3 +95,41 @@
     border-top: 1px solid #f3f3f3;
     margin-bottom: 18px!important;
 }
+
+.table-bordered td {
+    /* padding: 0px 0px 0px 0px; */
+    padding: 15px;
+}
+
+
+
+
+
+
+
+/* 
+ */
+
+
+ .form-check-input:checked {
+    background-color: #28a745!important;
+    border-color: #28a745!important;
+}
+
+.form-check .form-check-input {
+    float: none!important;
+    margin-left: 2.5em!important;
+}
+.form-check-input {
+    width: 2em!important;
+    height: 2em!important;
+    /* margin-top: 0.25em; */
+    /* vertical-align: top; */
+    background-color: #fff!important;
+    background-repeat: no-repeat!important;
+    background-position: center!important;
+    background-size: contain!important;
+    border: 1px solid rgba(0, 0, 0, 0.25)!important;
+    appearance: none!important;
+   
+}

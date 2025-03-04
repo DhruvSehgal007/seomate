@@ -22312,3 +22312,22 @@ span.welcome_name {
 span.mdi.mdi-menu {
   font-size: 28px!important;
 }
+
+
+
+button#addMoreBtn {
+  background: #ffbc00e0;
+  padding: 13px;
+}
+.cancelbtndiv {
+  text-align: end;
+}
+
+
+
+.for_text {
+  text-transform: capitalize;
+}
+.onpagesubtable {
+    text-transform: capitalize;
+}

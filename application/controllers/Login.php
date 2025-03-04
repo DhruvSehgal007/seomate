@@ -16,28 +16,6 @@ class Login extends CI_Controller {
         $this->load->view('admin/login');
     }
 
-    // public function authenticate() {
-    //     // Get the input data
-    //     $username = $this->input->post('username');
-    //     $password = $this->input->post('password');
-
-    //     // Validate credentials using the model
-    //     $user = $this->Login_model->check_login($username, $password);
-
-    //     if ($user) {
-    //         // Set session data for the authenticated user
-    //         $this->session->set_userdata('username', $user->username);
-    //         $this->session->set_userdata('role', $user->role);
-
-    //         // Redirect to the dashboard
-    //         redirect('admin/dashboard');
-    //     } else {
-    //         // If authentication fails, reload the login view with an error message
-    //         $data['error'] = 'Invalid username or password';
-    //         $this->load->view('admin/login', $data);
-    //     }
-    // }
-
     // Controller: Login.php
     public function authenticate() {
         // Get the input data
@@ -49,6 +27,8 @@ class Login extends CI_Controller {
     
         if ($user) {
             // Set session data for the authenticated user
+            // $this->session->set_userdata('id', $user->id);  // Add this line to store the user ID in session
+
             $this->session->set_userdata('username', $user->username);
             $this->session->set_userdata('first_name', $user->first_name);
             $this->session->set_userdata('last_name', $user->last_name);

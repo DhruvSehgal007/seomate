@@ -29,3 +29,37 @@
 .seo-bar .seo-item.active {
     background-color: #E66A37;
 }
+.offdatarow {
+    margin-top: 26px;
+}
+
+
+
+
+
+
+
+
+
+
+/*  */
+.data_number_section {
+    margin-top: 26px;
+}
+.data_number_row {
+    text-align: center;
+    /* padding: 0px; */
+}
+.cols_div {
+    background: #145874;
+    color: white;
+    /* margin: 1px; */
+}
+.cols_div {
+    background: #145874;
+    color: white;
+    /* margin: 1px; */
+    width: 10%;
+    margin: 0px 18px 0px 10px;
+    padding: 12px;
+}

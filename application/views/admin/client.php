@@ -1,7 +1,7 @@
 <div class="content-wrapper">
     <div class="row">
         <!-- New Client Information Form -->
-        <div class="col-md-3 grid-margin stretch-card">
+        <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Client Information</h4>
@@ -21,9 +21,18 @@
                     <form class="forms-sample" id="clientForm" method="post">
                         <input type="hidden" name="client_id" id="clientId"> <!-- Hidden input for client ID -->
                         <div class="form-group">
-                            <label for="clientName">Client Name</label>
+                            <label for="clientName">Point of contact</label>
                             <input type="text" name="client_name" class="form-control" id="clientName" placeholder="Enter Client Name" required>
                         </div>
+
+                        <!--  -->
+
+                        <div class="form-group">
+                            <label for="companyName">Company Name</label>
+                            <input type="text" name="company_name" class="form-control" id="companyName" placeholder="Enter Company Name" required>
+                        </div>
+
+                        <!--  -->
                         <div class="form-group">
                             <label for="clientEmail">Email address</label>
                             <input type="email" name="client_email" class="form-control" id="clientEmail" placeholder="Enter Client Email" required>
@@ -51,7 +60,7 @@
         </div>
 
         <!-- Clients Data Table -->
-        <div class="col-md-9 grid-margin stretch-card">
+        <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Clients Data Table</h4>
@@ -62,6 +71,7 @@
                                     <th>Sr.No.</th>
                                     <th>ID</th>
                                     <th>Client Name</th>
+                                    <th>Company Name</th>
                                     <th>Email</th>
                                     <th>Phone</th>
                                     <th>Industry Type</th>
@@ -112,6 +122,7 @@ $(document).ready(function() {
                             <td>${index + 1}.</td>
                             <td>${client.id}</td>
                             <td>${client.client_name}</td>
+                            <td>${client.company_name}</td>
                             <td>${client.client_email}</td>
                             <td>${client.client_phone}</td>
                             <td>${client.industry_type}</td>
@@ -133,7 +144,7 @@ $(document).ready(function() {
             }
         }
     });
-}
+    }
 
     // Edit client function
     function editClient(id) {
@@ -145,6 +156,7 @@ $(document).ready(function() {
                 // Populate form with client data
                 $('#clientId').val(client.id);
                 $('#clientName').val(client.client_name);
+                $('#companyName').val(client.company_name);
                 $('#clientEmail').val(client.client_email);
                 $('#clientPhone').val(client.client_phone);
                 $('#industryType').val(client.industry_type);

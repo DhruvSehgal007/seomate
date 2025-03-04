@@ -39,11 +39,12 @@
 
      <!-- SEO Navigation Bar -->
      <div class="seo-bar">
-    <div class="seo-item off-page ">
-        <a href="<?php echo base_url("admin/offpage/$projectid");?>" id="offpageLink">OFF PAGE OPTIMIZATION</a>
-    </div>
+   
     <div class="seo-item on-page ">
         <a href="<?php echo base_url("admin/onpage/$projectid");?>" id="onpageLink">ON PAGE OPTIMIZATION</a>
+    </div>
+    <div class="seo-item off-page ">
+        <a href="<?php echo base_url("admin/offpage/$projectid");?>" id="offpageLink">OFF PAGE OPTIMIZATION</a>
     </div>
     <div class="seo-item keywords active">
         <a href="<?php echo base_url("admin/keywords/$projectid");?>" id="keywordsLink">KEYWORDS</a>
@@ -63,37 +64,43 @@
     <div class="card">
         <div class="card-body">
             <h4 class="card-title">Add Keywords</h4>
-            <form class="forms-sample" id="keywordsForm">
-            <input type="hidden" id="entryId" name="id" value="">
+            <form class="forms-sample" id="keywordsForm" enctype="multipart/form-data">
+                <input type="hidden" id="entryId" name="id" value="">
+                <input type="hidden" id="project_id" name="project_id" value="<?php echo $projectid; ?>">
 
-<input type="hidden" id="project_id" name="project_id" value="<?php echo $selected_project['project_id'] ?? ''; ?>">
-    <div class="form-group">
-        <label for="keywords">Keywords</label>
-        <input type="text" class="form-control" id="keywords" name="keywords" placeholder="Enter Keywords">
+                <div id="keywordsContainer">
+                    <div class="form-group">
+                        <label for="keywords">Keywords</label>
+                        <input type="text" class="form-control keywords-field" name="keywords[]" placeholder="Enter Keywords">
+                    </div>
+                </div>
+                <div class="form-group">
+        <label for="excelFile">Upload Excel File</label>
+        <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls">
     </div>
-    <!-- Add hidden input for project_id -->
-    <input type="hidden" id="project_id" name="project_id" value="<?php echo $projectid; ?>">
-    <button type="submit" class="btn btn-primary me-2" id="submitButton">Submit</button>
-   
-    <button type="button" id="updateButton" class="btn btn-warning" style="display: none;">Update</button>
-</form>
 
+                <button type="button" class="btn btn-secondary me-2" id="addMoreButton">Add More</button>
+                <button type="submit" class="btn btn-primary me-2" id="submitButton">Submit</button>
+                <button type="button" id="updateButton" class="btn btn-warning" style="display: none;">Update</button>
+            </form>
         </div>
     </div>
 </div>
+
 
         <div class="col-md-12 grid-margin stretch-card">
     <div class="card">
         <div class="card-body">
             <h4 class="card-title">Keywords Data</h4>
             <div class="table-responsive">
+            <button id="downloadExcelButton" class="btn btn-success mt-3">Download Keywords in Excel</button>
                 <table class="table table-bordered newbt" id="keywordsTable">
                     <thead>
                         <tr>
                             <th>Sr.No.</th>
                             <th>Keywords</th>
-                            <th>Created on</th>
-                            <th>Updated on</th>
+                            <!-- <th>Created on</th>
+                            <th>Updated on</th> -->
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -101,12 +108,16 @@
         <tr><td colspan="6">Select a project to view data</td></tr>
     </tbody>
                 </table>
+               
             </div>
         </div>
     </div>
 </div>
     </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function () {
@@ -152,27 +163,51 @@ $(document).ready(function () {
 
 
 
- $('#keywordsForm').submit(function (e) {
-        e.preventDefault(); // Prevent default form submission
+    $('#keywordsForm').submit(function (e) {
+    e.preventDefault(); // Prevent default form submission
 
-        // Submit selected project, category, and subcategories
-        $.ajax({
-            url: '<?php echo base_url("keywords_data/save_keywords_data"); ?>',
-            method: 'POST',
-            data: $(this).serialize(),
-            dataType: 'json',
-            success: function (response) {
-                if (response.status === 'success') {
-                    alert('Data saved successfully!');
-                } else {
-                    alert(response.message || 'Failed to save data.');
-                }
-            },
-            error: function () {
-                alert('Failed to submit data. Please try again.');
+    // Collect all keyword fields
+    const keywords = $('.keywords-field')
+        .map(function () {
+            return $(this).val().trim();
+        })
+        .get();
+
+    if (keywords.length === 0) {
+        alert('Please enter or upload at least one keyword.');
+        return;
+    }
+
+    // Submit via AJAX
+    $.ajax({
+        url: '<?php echo base_url("keywords_data/save_keywords_data"); ?>',
+        method: 'POST',
+        data: {
+            project_id: $('#project_id').val(),
+            keywords: keywords.join(','),
+        },
+        dataType: 'json',
+        success: function (response) {
+            if (response.status === 'success') {
+                alert('Keywords saved successfully!');
+                $('#keywordsForm')[0].reset(); // Reset the form
+                $('#keywordsContainer').html(`
+                    <div class="form-group">
+                        <label for="keywords">Keywords</label>
+                        <input type="text" class="form-control keywords-field" name="keywords[]" placeholder="Enter Keywords">
+                    </div>
+                `); // Reset the form container
+                fetchkeywordsData($('#project_id').val()); // Refresh the table
+            } else {
+                alert(response.message || 'Failed to save keywords.');
             }
-        });
+        },
+        error: function () {
+            alert('An error occurred. Please try again.');
+        },
     });
+});
+
 
 
 
@@ -191,8 +226,7 @@ $(document).ready(function () {
                               <tr>
                                   <td>${index + 1}.</td>
                                   <td>${item.keywords}</td>
-                                  <td>${item.created_at}</td>
-                                  <td>${item.updated_at}</td>
+                                 
                                   <td>
                                       <button type="button" class="btn btn-sm btn-outline-success btn-icon-text edit-button" data-id="${item.id}">
                                           <i class="mdi mdi-marker btn-icon-prepend"></i> EDIT
@@ -220,7 +254,7 @@ $(document).ready(function () {
 // Event delegation for dynamically added DELETE buttons
 $(document).on('click', '.delete-button', function () {
     const id = $(this).data('id');
-    alert(id);
+    // alert(id);
     if (confirm('Are you sure you want to delete this data?')) {
         $.ajax({
             url: '<?php echo base_url("Keywords_data/delete_keywords_data"); ?>/' + id,
@@ -245,7 +279,7 @@ $(document).on('click', '.delete-button', function () {
 // edit data
 
 $(document).on("click", ".edit-button", function () {
-    const id = $(this).data("id"); // Get ID from button's data attribute
+    const id = $(this).data("id"); // Get the unique ID of the keyword
     $.ajax({
         url: '<?php echo base_url("keywords_data/get_keywords_data_by_id"); ?>/' + id,
         method: "GET",
@@ -258,7 +292,12 @@ $(document).on("click", ".edit-button", function () {
 
             // Populate the form fields with the fetched data
             $("#entryId").val(response.id); // Set the unique ID
-            $("#keywords").val(response.keywords); // Populate the keywords field
+            $("#keywordsContainer").html(`
+                <div class="form-group">
+                    <label for="keywords">Keywords</label>
+                    <input type="text" class="form-control keywords-field" name="keywords[]" value="${response.keywords}" placeholder="Enter Keywords">
+                </div>
+            `);
 
             // Switch to update mode
             $("#submitButton").hide(); // Hide the submit button
@@ -270,10 +309,12 @@ $(document).on("click", ".edit-button", function () {
     });
 });
 
+
 // Update button click event
 $("#updateButton").click(function () {
     const entryId = $("#entryId").val(); // Get the unique ID
     const projectId = $("#project_id").val(); // Get the project ID
+    const keywords = $(".keywords-field").val().trim(); // Get the updated keyword
 
     if (!entryId) {
         alert("No data selected for update.");
@@ -283,29 +324,116 @@ $("#updateButton").click(function () {
     $.ajax({
         url: '<?php echo base_url("keywords_data/update_keywords_data"); ?>',
         method: "POST",
-        data: $("#keywordsForm").serialize(), // Serialize form data
+        data: {
+            id: entryId,
+            project_id: projectId,
+            keywords: keywords,
+        },
         dataType: "json",
         success: function (response) {
             if (response.status === "success") {
-                alert("Data updated successfully!");
+                alert("Keyword updated successfully!");
                 fetchkeywordsData(projectId); // Refresh the table
                 resetForm(); // Reset the form
             } else {
-                alert(response.message || "Failed to update data.");
+                alert(response.message || "Failed to update keyword.");
             }
         },
         error: function () {
-            alert("Failed to update data.");
+            alert("Failed to update keyword.");
         },
     });
 });
 
-function resetForm() {
+
+
+$('#addMoreButton').click(function () {
+        const newField = `
+            <div class="form-group additional-keywords">
+                <label for="keywords">Keywords</label>
+                <input type="text" class="form-control keywords-field" name="keywords[]" placeholder="Enter Keywords">
+            </div>`;
+        $('#keywordsContainer').append(newField);
+    });
+
+    function resetForm() {
     $("#keywordsForm")[0].reset(); // Reset the form
     $("#entryId").val(""); // Clear the unique ID
     $("#submitButton").show(); // Show the submit button
     $("#updateButton").hide(); // Hide the update button
+    $("#keywordsContainer").html(`
+        <div class="form-group">
+            <label for="keywords">Keywords</label>
+            <input type="text" class="form-control keywords-field" name="keywords[]" placeholder="Enter Keywords">
+        </div>
+    `); // Reset the form container
 }
 
+document.getElementById('downloadExcelButton').addEventListener('click', function () {
+    // Fetch the project name from the page
+    const projectName = document.getElementById('projectName').textContent.trim() || 'Project';
+
+    // Fetch table data
+    const table = document.getElementById('keywordsTable');
+    const rows = table.querySelectorAll('tbody tr');
+
+    // Prepare data for Excel (only Sr.No. and Keywords columns)
+    const excelData = [];
+    excelData.push(['Sr.No.', 'Keywords']); // Table headers
+
+    rows.forEach((row) => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 1) { // Skip rows with "No data available"
+            const srNo = cells[0].textContent.trim(); // Sr.No.
+            const keyword = cells[1].textContent.trim(); // Keywords
+            excelData.push([srNo, keyword]); // Push only Sr.No. and Keywords
+        }
+    });
+
+    // Create a new workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Keywords');
+
+    // Export Excel file with the project name
+    const fileName = `${projectName.replace(/\s+/g, '_')}_keywords.xlsx`;
+    XLSX.writeFile(workbook, fileName);
 });
+
+
+
+
+});
+
+
+
+document.getElementById('excelFile').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const keywords = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // Get data as array
+            
+            // Clear existing fields
+            document.getElementById('keywordsContainer').innerHTML = '';
+
+            // Populate fields with keywords from Excel
+            keywords.forEach((row) => {
+                if (row[0]) {
+                    document.getElementById('keywordsContainer').innerHTML += `
+                        <div class="form-group">
+                            <input type="text" class="form-control keywords-field" name="keywords[]" value="${row[0]}" placeholder="Enter Keywords">
+                        </div>
+                    `;
+                }
+            });
+        };
+        reader.readAsArrayBuffer(file);
+    }
+});
+
 </script>

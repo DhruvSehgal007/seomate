@@ -22,6 +22,7 @@ class Clients extends CI_Controller {
     public function submit_form() {
         $data = array(
             'client_name' => $this->input->post('client_name'),
+            'company_name' => $this->input->post('company_name'),
             'client_email' => $this->input->post('client_email'),
             'client_phone' => $this->input->post('client_phone'),
             'industry_type' => $this->input->post('industry_type')
@@ -38,6 +39,7 @@ class Clients extends CI_Controller {
         $client_id = $this->input->post('client_id');
         $data = array(
             'client_name' => $this->input->post('client_name'),
+            'company_name' => $this->input->post('company_name'),
             'client_email' => $this->input->post('client_email'),
             'client_phone' => $this->input->post('client_phone'),
             'industry_type' => $this->input->post('industry_type')

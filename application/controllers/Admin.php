@@ -69,47 +69,36 @@ class Admin extends CI_Controller {
     }
     
 
-
-    // public function offpage(){
-    //     $this->load->view('admin/header', $this->data);
-    //     $this->load->view('admin/offpage');
-    //     $this->load->view('admin/footer');
-        
-    // }
-
     // public function offpage($project_id = null) {
-    //     $data = array(); // Initialize the data array
+    //     $data = array();  // Initialize the data array
+    //     $user_id = $this->session->userdata('id');  // Get the user_id from the session
     
-    //     // Fetch project details only if $project_id is provided
+    //     // Fetch the assigned projects for the logged-in user
+    //     $this->load->model('Offpage_data_model');  // Load the Offpage_data_model
+    //     $data['projects'] = $this->Offpage_data_model->get_project_by_userid($user_id);  // Get the projects assigned to this user
+    
+    //     // If a project_id is provided, fetch the project details
     //     if (!empty($project_id)) {
-    //         $data['selected_project'] = $this->Offpage_data_model->get_project_by_id($project_id);
-	// 		$data['projectid'] = $project_id;
-    //         // Handle invalid project ID
-    //         if (empty($data['selected_project'])) {
-    //             $data['selected_project'] = null; // Set to null if project ID is invalid
-    //         }
+    //         $data['selected_project'] = $this->Offpage_data_model->get_project_by_id($project_id);  // Get details of the selected project
+    //         $data['projectid'] = $project_id;
     //     } else {
-    //         $data['selected_project'] = null; // No project selected
-	// 		$data['projectid'] = null;
+    //         $data['selected_project'] = null;  // No project selected
+    //         $data['projectid'] = null;
     //     }
     
-    //     // Fetch all projects for the dropdown
-    //     $data['projects'] = $this->Offpage_data_model->get_all_projects();
-    
-    //     // Fetch all categories for the dropdown
+    //     // Fetch all categories for the dropdown (if needed)
     //     $data['categories'] = $this->Offpage_data_model->get_all_categories();
     
-    //     // Pass the selected project ID to the view
+    //     // Ensure the project_id is passed to the view
     //     $data['project_id'] = $project_id;
     
-    //     // Merge global data (like username) with local data
-    //     $view_data = array_merge($this->data, $data);
-    
-    //     // Load the views with data
-    //     $this->load->view('admin/header', $view_data);
-    //     $this->load->view('admin/offpage', $view_data);
+    //     // Load the views with the data
+    //     $this->load->view('admin/header', $data);
+    //     $this->load->view('admin/offpage', $data);  // Pass the data to the offpage view
     //     $this->load->view('admin/footer');
     // }
+    
+   
     public function offpage($project_id = null) {
         $data = array(); // Initialize the data array
     
@@ -129,6 +118,8 @@ class Admin extends CI_Controller {
     
         // Fetch all projects for the dropdown
         $data['projects'] = $this->Offpage_data_model->get_all_projects();
+
+        
     
         // Fetch all categories for the dropdown
         $data['categories'] = $this->Offpage_data_model->get_all_categories();
@@ -144,6 +135,47 @@ class Admin extends CI_Controller {
         $this->load->view('admin/offpage', $view_data);
         $this->load->view('admin/footer');
     }
+    
+
+    // public function offpage($project_id = null) {
+    //     $data = array(); // Initialize the data array
+    //     $user_id = $this->session->userdata('id');
+    //     // Fetch the assigned projects for the logged-in user
+    //     $data['projects'] = $this->Offpage_data_model->get_project_by_userid($user_id);
+    //     // Fetch project details only if $project_id is provided
+    //     if (!empty($project_id)) {
+    //         $data['selected_project'] = $this->Offpage_data_model->get_project_by_id($project_id);
+    //         $data['projectid'] = $project_id;
+    
+    //         // Handle invalid project ID
+    //         if (empty($data['selected_project'])) {
+    //             $data['selected_project'] = null; // Set to null if project ID is invalid
+    //         }
+    //     } else {
+    //         $data['selected_project'] = null; // No project selected
+    //         $data['projectid'] = null;
+    //     }
+    
+    //     // Fetch all projects for the dropdown
+    //     //$data['projects'] = $this->Offpage_data_model->get_all_projects();
+
+        
+    
+    //     // Fetch all categories for the dropdown
+    //     $data['categories'] = $this->Offpage_data_model->get_all_categories();
+    
+    //     // Ensure the project_id is always passed
+    //     $data['project_id'] = $project_id; 
+    
+    //     // Merge global data (like username) with local data
+    //    // $view_data = array_merge($this->data, $data);
+    
+    //     // Load the views with data
+    //     $this->load->view('admin/header', $data);
+    //     $this->load->view('admin/offpage', $data);
+    //     $this->load->view('admin/footer');
+    // }
+    
     
 	
 
@@ -311,6 +343,24 @@ class Admin extends CI_Controller {
     public function on_page_sub_category(){
         $this->load->view('admin/header', $this->data);
         $this->load->view('admin/on_page_sub_category');
+        $this->load->view('admin/footer');
+        
+    }
+
+
+
+    public function assigned_user(){
+        $this->load->view('admin/header', $this->data);
+        $this->load->view('admin/assigned_user');
+        $this->load->view('admin/footer');
+        
+    }
+
+
+
+    public function industry_category(){
+        $this->load->view('admin/header', $this->data);
+        $this->load->view('admin/industry_category');
         $this->load->view('admin/footer');
         
     }

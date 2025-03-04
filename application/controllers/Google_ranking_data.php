@@ -25,71 +25,60 @@ class Google_ranking_data extends CI_Controller {
     }
 
     // Function to handle AJAX request to fetch keywords based on project_id
-    public function get_keywords_by_project() {
-        // Load model
-        $this->load->model('Google_ranking_data_model');
-    
-        // Get the project ID from the POST data
-        $project_id = $this->input->post('project_id');
-        
-        // Ensure project_id is not empty
+ 
+    public function fetch_keywords_by_project($project_id) {
         if (empty($project_id)) {
-            echo json_encode(['status' => 'error', 'message' => 'Project ID is required']);
+            echo json_encode(['status' => 'error', 'message' => 'Project ID is required.']);
             return;
         }
-        
-        // Fetch keywords related to the selected project from the database
-        $keywords_data = $this->Google_ranking_data_model->get_keywords_by_project($project_id);
-        
-        // Check if keywords are available
-        if (!empty($keywords_data)) {
-            echo json_encode(['status' => 'success', 'keywords' => $keywords_data]);
+    
+        $keywords = $this->Google_ranking_data_model->get_keywords_by_project($project_id);
+    
+        if (!empty($keywords)) {
+            echo json_encode(['status' => 'success', 'data' => $keywords]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'No keywords found for this project.']);
         }
     }
+    public function insert_rankings() {
+        $project_id = $this->input->post('project_id');
+        $rankings = $this->input->post('rankings');
     
-    // 
-    public function insert_ranking_data() {
-        // Get POST data from AJAX request
-        $keyword = $this->input->post('keyword');
-        $year = $this->input->post('year');
-        $month = $this->input->post('month');
-        $ranking = $this->input->post('ranking');
-        $project_id = $this->input->post('project_id'); // Get the selected project ID
-    
-        // Validate the input
-        if (empty($keyword) || empty($year) || empty($month) || empty($ranking) || empty($project_id)) {
-            // Handle validation failure
-            echo json_encode(['status' => 'error', 'message' => 'Please fill all fields.']);
+        if (empty($project_id) || empty($rankings)) {
+            echo json_encode(['status' => 'error', 'message' => 'Project ID or rankings are missing.']);
             return;
         }
     
-        // Prepare data for insertion
-        $data = array(
-            'project_id' => $project_id,
-            'keywords' => $keyword,
-            'ranking' => $ranking,
-            'year' => $year,
-            'month' => $month
-        );
+        $data = [];
+        foreach ($rankings as $ranking) {
+            $data[] = [
+                'project_id' => $project_id,
+                'keywords' => $ranking['keyword'],
+                'ranking' => $ranking['ranking'],
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+        }
     
-        // Insert the data into the database
-        $insert_result = $this->Google_ranking_data_model->insert_ranking_data($data);
+        $this->load->model('Google_ranking_data_model');
+        $result = $this->Google_ranking_data_model->insert_rankings($data);
     
-        // Return JSON response
-        if ($insert_result) {
-            echo json_encode(['status' => 'success', 'message' => 'Data inserted successfully.']);
+        if ($result) {
+            echo json_encode(['status' => 'success', 'message' => 'Rankings saved successfully.']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to insert data.']);
+            echo json_encode(['status' => 'error', 'message' => 'Failed to save rankings.']);
         }
     }
     
+
+
     public function get_ranking_data($project_id) {
         $data = $this->Google_ranking_data_model->get_ranking_data_by_project($project_id); // Fetch ranking data
         echo json_encode(['data' => $data]); // Return the data as JSON
     }
-    
+
+
+
     public function delete_ranking_data($id) {
         // Call the model to delete the entry
         $deleted = $this->Google_ranking_data_model->delete_ranking_data($id);
@@ -101,42 +90,33 @@ class Google_ranking_data extends CI_Controller {
             echo json_encode(['status' => 'error', 'message' => 'Record not found or deletion failed']);
         }
     }
-
-
-
-
-
-
-    // 
-    public function update_ranking_data() {
-        $id = $this->input->post('id'); // Get the unique ID
-        $data = $this->input->post();
     
-        if (empty($id)) {
-            echo json_encode(['status' => 'error', 'message' => 'ID is required for update.']);
+
+
+    public function update_ranking() {
+        $id = $this->input->post('id');
+        $ranking = $this->input->post('ranking');
+    
+        if (empty($id) || empty($ranking)) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid data provided.']);
             return;
         }
     
-        unset($data['id']); // Remove ID from the data array
-        $data['updated_at'] = date('Y-m-d H:i:s'); // Set updated time
+        $data = [
+            'ranking' => $ranking,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
     
-        $updated = $this->Google_ranking_data_model->update_ranking_data($id, $data);
+        $this->load->model('Google_ranking_data_model');
+        $updated = $this->Google_ranking_data_model->update_ranking($id, $data);
     
         if ($updated) {
-            echo json_encode(['status' => 'success', 'message' => 'Data updated successfully.']);
+            echo json_encode(['status' => 'success']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to update data.']);
+            echo json_encode(['status' => 'error', 'message' => 'Failed to update ranking.']);
         }
     }
     
-
-    public function get_ranking_data_by_id($id) {
-        $data = $this->Google_ranking_data_model->get_ranking_data_by_id($id); // Fetch using unique ID
-        if ($data) {
-            echo json_encode($data);
-        } else {
-            echo json_encode(['error' => 'Data not found.']);
-        }
-    }
+    
     
 }

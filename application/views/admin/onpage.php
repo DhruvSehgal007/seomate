@@ -1,3 +1,39 @@
+<style>
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-btn {
+      padding: 10px 20px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      cursor: pointer;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+      min-width: 200px;
+      z-index: 1;
+    }
+
+    .dropdown-content label {
+      display: block;
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    .dropdown-content label:hover {
+      background-color: #f1f1f1;
+    }
+
+    .show {
+      display: block;
+    }
+  </style>
 <div class="content-wrapper">
     <div class="row">
 	<?php 
@@ -44,11 +80,12 @@
 
      <!-- SEO Navigation Bar -->
      <div class="seo-bar">
-    <div class="seo-item off-page ">
-        <a href="<?php echo base_url("admin/offpage/$projectid");?>" id="offpageLink">OFF PAGE OPTIMIZATION</a>
-    </div>
+    
     <div class="seo-item on-page active">
         <a href="<?php echo base_url("admin/onpage/$projectid");?>" id="onpageLink">ON PAGE OPTIMIZATION</a>
+    </div>
+    <div class="seo-item off-page ">
+        <a href="<?php echo base_url("admin/offpage/$projectid");?>" id="offpageLink">OFF PAGE OPTIMIZATION</a>
     </div>
     <div class="seo-item keywords">
         <a href="<?php echo base_url("admin/keywords/$projectid");?>" id="keywordsLink">KEYWORDS</a>
@@ -67,45 +104,26 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">On Page Information</h4>
-                    <form class="forms-sample" id="onpageForm">
-                    <input type="hidden" id="entryId" name="id" value="">
-
-                    <input type="hidden" id="project_id" name="project_id" value="<?php echo $selected_project['project_id'] ?? ''; ?>">
-
-                    
-                    <div class="form-group">
-    <label for="exampleFormControlSelect2">On Page Category</label>
-    <select class="form-control" id="exampleFormControlSelect2" name="on_page_category">
-    <option disabled selected>Choose a category</option>
-</select>
-</div>
-
-                        
-<div>
+<form id="onPageForm" method="POST">
+    <input type="hidden" name="project_id" id="project_id" value="<?php echo $projectid; ?>">
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>Sr.No.</th>
-                <th>Activities</th>
-                <th>Action</th>
+                <th>Sr.No</th>
+                <th>Categories</th>
+                <th>Checkbox</th>
             </tr>
         </thead>
-        <tbody id="activitiesTable">
-            <tr>
-                <td colspan="3">Select a category to view activities</td>
-            </tr>
+        <tbody id="onPageTableBody">
+            <!-- Dynamic categories and subcategories will be inserted here -->
         </tbody>
     </table>
-</div>
+    <button type="submit" id="submitButton" class="btn btn-primary">Submit</button>
+</form>
 
-                       
-                        
-                        <!-- <button type="submit" class="btn btn-primary me-2">Submit</button> -->
-                        <button type="submit" class="btn btn-primary me-2" id="submitButton">Submit</button>
-   
-   <button type="button" id="updateButton" class="btn btn-warning" style="display: none;">Update</button>
-                        <button type="button" class="btn btn-light">Cancel</button>
-                    </form>
+
+
+
                 </div>
             </div>
         </div>
@@ -114,7 +132,7 @@
         <div class="col-md-12 grid-margin stretch-card">
                     <div class="card">
                         <div class="card-body">
-                        <h4 class="card-title">Off Page Data </h4>
+                        <h4 class="card-title">On Page Data </h4>
                         
                         <div class="table-responsive">
                         <table class="table table-bordered">
@@ -129,10 +147,11 @@
             <th class="action">Action</th>
         </tr>
     </thead>
-    <tbody id="onPageTableBody">
-        <tr><td colspan="6">Select a project to view data</td></tr>
+    <tbody id="onPageDataBody">
+        <tr><td colspan="7">Select a project to view data</td></tr>
     </tbody>
 </table>
+
 
 
                         </div>
@@ -145,13 +164,12 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function () {
+  
     const currentUrl = window.location.href;
     const projectIdMatch = currentUrl.match(/\/(\d+)$/); // Extract the last number from the URL
     const projectId = projectIdMatch ? projectIdMatch[1] : null;
-    fetchOnPageCategories();
-    fetchOnPageData(projectId);
-
-
+    loadOnPageCategories();
+    loadCategoriesWithSubcategories();
     // Preselect the dropdown option based on the project ID
     if (projectId) {
         $('#projectDropdownn option').removeAttr('selected');
@@ -183,67 +201,128 @@ $(document).ready(function () {
         
   
     });
+ 
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
 
-    function fetchOnPageCategories(){
-         // Fetch categories
-         $.ajax({
-            url: '<?php echo base_url("onpage_data/fetch_categories"); ?>',
+    dropdownBtn.addEventListener('click', () => {
+      dropdownContent.classList.toggle('show');
+    });
+
+    window.addEventListener('click', (e) => {
+      if (!e.target.matches('.dropdown-btn') && !e.target.closest('.dropdown-content')) {
+        dropdownContent.classList.remove('show');
+      }
+    });
+
+
+
+    function loadOnPageCategories() {
+        $.ajax({
+            url: '<?php echo base_url("Onpage_data/fetch_on_page_categories"); ?>',
             method: 'GET',
             dataType: 'json',
-            success: function (categories) {
-                $('#exampleFormControlSelect2').empty().append('<option disabled selected>Choose a category</option>');
-                if (categories.length > 0) {
-                    categories.forEach(category => {
-                        $('#exampleFormControlSelect2').append(
-                            `<option value="${category.category_id}">${category.on_category_name}</option>`
-                        );
+            success: function (response) {
+                if (response.status === 'success') {
+                    let categories = response.data;
+                    let tableBody = '';
+                    $.each(categories, function (index, category) {
+                        tableBody += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${category.on_category_name}</td>
+                               
+                                <td>
+                                    
+                                </td>
+                            </tr>`;
                     });
+                    $('#onPageTableBody').html(tableBody);
                 } else {
-                    $('#exampleFormControlSelect2').append('<option disabled>No categories available</option>');
+                    $('#onPageTableBody').html('<tr><td colspan="5">No categories found.</td></tr>');
                 }
             },
             error: function () {
-                alert('Failed to fetch categories. Please try again.');
+                alert('Failed to fetch categories.');
             }
         });
     }
 
-    function fetchOnPageData(projectId) {
+
+
+
+
+
+
+
+
+
+
+    function loadCategoriesWithSubcategories() {
     $.ajax({
-        url: '<?php echo base_url("Onpage_data/get_onpage_data"); ?>/' + projectId,
+        url: '<?php echo base_url("Onpage_data/fetch_categories_with_subcategories"); ?>',
         method: 'GET',
         dataType: 'json',
         success: function (response) {
-            const data = response.data || [];
-            $('#onPageTableBody').html(
-                data.length
-                    ? data
-                          .map(function (item, index) {
-                              return `
-                              <tr>
-                                  <td>${index + 1}.</td>
-                                  <td>${item.project_name}</td>
-                                  <td>${item.on_category_name}</td>
-                                  <td>${item.on_page_sub_category_names}</td> <!-- Display the subcategory names -->
-                                  <td>${item.created_at}</td>
-                                  <td>${item.updated_at}</td>
-                                  <td>
-                                      <button type="button" class="btn btn-sm btn-outline-success btn-icon-text edit-button" data-id="${item.id}">
-                                          <i class="mdi mdi-marker btn-icon-prepend"></i> EDIT
-                                      </button>
-                                      <button type="button" class="btn btn-sm btn-outline-danger btn-icon-text delete-button" data-id="${item.id}">
-                                          <i class="mdi mdi-account-off btn-icon-prepend"></i> DELETE
-                                      </button>
-                                  </td>
-                              </tr>
-                          `;
-                          })
-                          .join('')
-                    : '<tr><td colspan="8">No data available for this project.</td></tr>'
-            );
+            if (response.status === 'success') {
+                let categories = response.data;
+                let tableBody = '';
+                $.each(categories, function (index, category) {
+                    let checkboxColumn = '';
+
+                    if (category.subcategories.length > 0) {
+                        // If subcategories exist, create a dropdown with checkboxes
+                        checkboxColumn = `
+                            <div class="dropdown">
+                                <div class="dropdown-btn">Select Options</div>
+                                <input type="hidden" value="${category.category_id}" name="categories[]"></input>
+                                <div class="dropdown-content">
+                                    ${category.subcategories
+                                        .map(
+                                            (sub) =>
+                                                `<label>
+                                                    <input type="checkbox" class="form-check-input" value="${sub.sub_category_id}"  name="subcategories[]"  >
+                                                    ${sub.sub_category_name}
+                                                </label>`
+                                        )
+                                        .join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // If no subcategories, show a single checkbox
+                        checkboxColumn = `
+                            <div class="form-check form-check-success">
+                                <input type="checkbox" class="form-check-input" value="${category.category_id}"  name="categories[]" >
+                                
+                            </div>
+                        `;
+                    }
+
+                    tableBody += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${category.on_category_name}</td>
+                            <td>${checkboxColumn}</td>
+                        </tr>`;
+                });
+                $('#onPageTableBody').html(tableBody);
+ 
+                // Add dropdown functionality
+                $('.dropdown-btn').on('click', function () {
+                    $(this).siblings('.dropdown-content').toggleClass('show');
+                });
+                $(window).on('click', function (e) {
+                    if (!$(e.target).hasClass('dropdown-btn') && !$(e.target).closest('.dropdown-content').length) {
+                        $('.dropdown-content').removeClass('show');
+                    }
+                });
+            } else {
+                $('#onPageTableBody').html('<tr><td colspan="3">No categories found.</td></tr>');
+            }
         },
         error: function () {
-            alert('Failed to fetch data.');
+            alert('Failed to fetch categories and subcategories.');
         },
     });
 }
@@ -251,219 +330,131 @@ $(document).ready(function () {
 
 
 
-    // Fetch subcategories based on selected category
-    $('#exampleFormControlSelect2').change(function () {
-        const categoryId = $(this).val();
-        $('#categoryIdInput').val(categoryId); // Set hidden input for category
 
-        // Clear the table
-        $('#activitiesTable').html('<tr><td colspan="3">Loading...</td></tr>');
 
-        // Fetch subcategories via AJAX
-        $.ajax({
-            url: '<?php echo base_url("onpage_data/fetch_sub_categories"); ?>/' + categoryId,
-            method: 'GET',
-            dataType: 'json',
-            success: function (subCategories) {
-                if (subCategories.length > 0) {
-                    let tableRows = '';
-                    subCategories.forEach((subCategory, index) => {
-                        tableRows += `
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td>${subCategory.sub_category_name}</td>
-                                <td>
-                                    <div class="form-check form-check-success">
-                                        <label class="form-check-label">
-                                            <input type="checkbox" class="form-check-input custom-checkbox" name="on_page_sub_category[]" value="${subCategory.sub_category_id}">
-                                            <span class="checkmark"></span>
-                                        </label>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    $('#activitiesTable').html(tableRows);
-                } else {
-                    $('#activitiesTable').html('<tr><td colspan="3">No activities found for this category</td></tr>');
-                }
-            },
-            error: function () {
-                $('#activitiesTable').html('<tr><td colspan="3">Failed to fetch activities. Please try again.</td></tr>');
-            }
-        });
-    });
 
-    // Handle form submission
-//     $('#onpageForm').submit(function (e) {
-//     e.preventDefault(); // Prevent default form submission
 
-//     // Log form data before submission
-//     console.log($(this).serialize()); // This will show the data being sent to the server
 
-//     // Submit selected project, category, and subcategories
-//     $.ajax({
-//         url: '<?php echo base_url("onpage_data/save_onpage_data"); ?>',
-//         method: 'POST',
-//         data: $(this).serialize(),
-//         dataType: 'json',
-//         success: function (response) {
-//             console.log(response); // Log the response to see any errors from the server
-//             if (response.status === 'success') {
-//                 alert('Data saved successfully!');
-//                 fetchOnPageData($('#project_id').val()); // Refresh the data table
-//             } else {
-//                 alert(response.message || 'Failed to save data.');
-//             }
-//         },
-//         error: function () {
-//             alert('Failed to submit data. Please try again.');
-//         }
-//     });
-// });
-
-$('#onpageForm').submit(function (e) {
-    e.preventDefault(); // Prevent default form submission
-
-    $.ajax({
-        url: '<?php echo base_url("onpage_data/save_onpage_data"); ?>',
-        method: 'POST',
-        data: $(this).serialize(),
-        dataType: 'json',
-        success: function (response) {
-            if (response.status === 'success') {
-                alert('Data saved successfully!');
-                fetchOnPageData($('#project_id').val()); // Refresh the data table
-            } else {
-                alert(response.message || 'Failed to save data.'); // Show error message for duplicates
-            }
-        },
-        error: function () {
-            alert('Failed to submit data. Please try again.');
-        }
-    });
 });
 
 
+$(document).ready(function () {
+    $('#onPageForm').submit(function (e) {
+        e.preventDefault(); // Prevent default form submission
 
+        const projectId = $('#project_id').val(); // Capture Project ID
+        const selectedData = [];
 
+        // Loop through all category rows dynamically
+        $('#onPageTableBody').find('tr').each(function () {
+            const categoryCheckbox = $(this).find('input[name="categories[]"]'); // Delegate for category checkbox
+            const isCategoryChecked = categoryCheckbox.is(':checked'); // Check if category is selected
+            const categoryId = categoryCheckbox.val(); // Get category ID
+            const categoryName = $(this).find('td:nth-child(2)').text().trim(); // Get category name
 
+            const subcategories = [];
+            // Delegate for subcategory checkboxes within the current row
+            $(this).find('input[name="subcategories[]"]:checked').each(function () {
+                subcategories.push({
+                    id: $(this).val(),
+                    name: $(this).parent().text().trim(),
+                });
+            });
 
-$(document).on('click', '.delete-button', function () {
-    const id = $(this).data('id');
-    if (confirm('Are you sure you want to delete this data?')) {
-        $.ajax({
-            url: '<?php echo base_url("Onpage_data/delete_onpage_data"); ?>/' + id,
-            method: 'POST',
-            dataType: 'json',
-            success: function (response) {
-                if (response.status === 'success') {
-                    alert('Data deleted successfully.');
-                    fetchOnPageData($('#project_id').val()); // Refresh the table
-                } else {
-                    alert('Failed to delete data.');
-                }
-            },
-            error: function () {
-                alert('Failed to delete data.');
-            },
+            // Add the category to selectedData if either it or its subcategories are selected
+            if (isCategoryChecked || subcategories.length > 0) {
+                selectedData.push({
+                    category_id: categoryId,
+                    category_name: categoryName,
+                    subcategories: subcategories,
+                });
+            }
         });
+
+        // Log the results for debugging
+        console.log('Project ID:', projectId);
+        console.log('Selected Data:', selectedData);
+
+        $.ajax({
+    url: '<?php echo base_url("Onpage_data/insert_onpage_data"); ?>', // URL to your controller method
+    method: 'POST',
+    data: {
+        project_id: projectId, // Sending the project_id
+        selected_data: selectedData, // Sending the selected categories, renamed to selected_data to match your PHP code
+    },
+    success: function (response) {
+        console.log("Response:", response); // Log the response
+        alert('Data submitted successfully.'); // Notify user on success
+    },
+    error: function (xhr, status, error) {
+        console.log('Error:', error); // Log any error
+        alert('Error in form submission.'); // Notify user on error
     }
 });
 
 
-$(document).on('click', '.edit-button', function () {
-    const id = $(this).data('id');
-    
-    // Fetch data for the selected entry
-    $.ajax({
-        url: '<?php echo base_url("Onpage_data/edit_onpage_data"); ?>/' + id,
-        method: 'GET',
-        dataType: 'json',
-        success: function (response) {
-            const data = response.data;
-            const categories = response.categories;
-            const subCategories = response.subCategories;
+    });
 
-            // Pre-fill the category dropdown
-            $('#exampleFormControlSelect2').val(data.on_page_category);
+    // Delegate for dynamically created category checkboxes
+    $(document).on('change', 'input[name="categories[]"]', function () {
+        console.log('Category checkbox changed:', $(this).val());
+    });
 
-            // Clear previous activities table
-            $('#activitiesTable').empty();
-
-            // Populate sub-category checkboxes
-            const selectedSubCategories = data.on_page_sub_category.split(','); // Assuming this is a comma-separated string
-            let tableRows = '';
-            
-            // Loop through all fetched subcategories
-            subCategories.forEach((subCategory, index) => {
-                const isChecked = selectedSubCategories.includes(subCategory.sub_category_id.toString()) ? 'checked' : '';
-                tableRows += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${subCategory.sub_category_name}</td>
-                        <td>
-                            <div class="form-check form-check-success">
-                                <label class="form-check-label">
-                                    <input type="checkbox" class="form-check-input custom-checkbox" name="on_page_sub_category[]" value="${subCategory.sub_category_id}" ${isChecked}>
-                                    <span class="checkmark"></span>
-                                </label>
-                            </div>
-                        </td>
-                    </tr>`;
-            });
-
-            $('#activitiesTable').html(tableRows); // Populate the table with rows
-
-            // Show the update button and hide the submit button
-            $('#submitButton').hide();
-            $('#updateButton').show().data('id', id);
-        },
-        error: function () {
-            alert('Failed to fetch data for editing.');
-        }
+    // Delegate for dynamically created subcategory checkboxes
+    $(document).on('change', 'input[name="subcategories[]"]', function () {
+        console.log('Subcategory checkbox changed:', $(this).val());
     });
 });
 
 
-$('#updateButton').click(function () {
-    const id = $(this).data('id');
-    const project_id = $('#project_id').val();
-    const on_page_category = $('#exampleFormControlSelect2').val();
-    const on_page_sub_category = []; // Collect selected sub-categories
-
-    $('#activitiesTable input[type="checkbox"]:checked').each(function () {
-        on_page_sub_category.push($(this).val());
-    });
-
-    // Make sure to send the data correctly as an object
-    $.ajax({
-        url: '<?php echo base_url("onpage_data/save_onpage_data"); ?>',
-        method: 'POST',
-        data: {
-            id: id,
-            project_id: project_id,
-            on_page_category: on_page_category,
-            on_page_sub_category: on_page_sub_category // Send as an array
-        },
-        dataType: 'json',
-        success: function (response) {
-            if (response.status === 'success') {
-                alert('Data updated successfully!');
-                fetchOnPageData(project_id); // Refresh the table with updated data
-                $('#submitButton').show();
-                $('#updateButton').hide();
-            } else {
-                alert(response.message || 'Failed to update data.');
+$(document).ready(function () {
+    // Fetch data for the table based on the project ID
+    function fetchData(projectId) {
+        $.ajax({
+            url: '<?php echo base_url("Onpage_data/fetch_onpage_data"); ?>/' + projectId,
+            method: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                let tableBody = '';
+                if (response.status === 'success') {
+                    response.data.forEach((item, index) => {
+                        tableBody += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${item.project_name || 'N/A'}</td>
+                                <td>${item.on_category_name || 'N/A'}</td>
+                                <td>${item.sub_category_name || '----'}</td>
+                                <td>${item.created_at || 'N/A'}</td>
+                                <td>${item.updated_at || 'N/A'}</td>
+                                <td>Action</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tableBody = '<tr><td colspan="7">No data found for the selected project.</td></tr>';
+                }
+                $('#onPageDataBody').html(tableBody);
+            },
+            error: function () {
+                alert('Failed to fetch data for the project.');
             }
-        },
-        error: function () {
-            alert('Failed to update data.');
+        });
+    }
+
+    // Call fetchData when the page loads if a project ID is available
+    const currentProjectId = $('#project_id').val();
+    if (currentProjectId) {
+        fetchData(currentProjectId);
+    }
+
+    // Reload data when project is changed in the dropdown
+    $('#projectDropdownn').change(function () {
+        const selectedProjectId = $(this).val();
+        if (selectedProjectId) {
+            fetchData(selectedProjectId);
         }
     });
 });
 
-
-});
 
 </script>

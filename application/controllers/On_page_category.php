@@ -13,16 +13,18 @@ class On_page_category extends CI_Controller {
     }
 
     public function add_category() {
-        $category_name = $this->input->post('category_name');
-        $inserted = $this->On_page_category_model->insert_category($category_name);
-
-        if ($inserted) {
-            echo json_encode(['status' => 'success', 'message' => 'Category added successfully!']);
+        $category_names = $this->input->post('category_name'); // This is now an array due to category_name[]
+    
+        if (is_array($category_names) && count($category_names) > 0) {
+            foreach ($category_names as $cname) {
+                $this->On_page_category_model->insert_category($cname);
+            }
+            echo json_encode(['status' => 'success', 'message' => 'Categories added successfully!']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to add category.']);
+            echo json_encode(['status' => 'error', 'message' => 'No category provided.']);
         }
     }
-
+    
     public function get_categories() {
         $categories = $this->On_page_category_model->get_all_categories();
         echo json_encode($categories);

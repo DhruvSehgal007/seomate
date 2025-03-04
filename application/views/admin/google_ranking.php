@@ -43,11 +43,12 @@
 
 	</div>
  <div class="seo-bar">
-    <div class="seo-item off-page ">
-        <a href="<?php echo base_url("admin/offpage/$projectid");?>" id="offpageLink">OFF PAGE OPTIMIZATION</a>
-    </div>
+   
     <div class="seo-item on-page ">
         <a href="<?php echo base_url("admin/onpage/$projectid");?>" id="onpageLink">ON PAGE OPTIMIZATION</a>
+    </div>
+    <div class="seo-item off-page ">
+        <a href="<?php echo base_url("admin/offpage/$projectid");?>" id="offpageLink">OFF PAGE OPTIMIZATION</a>
     </div>
     <div class="seo-item keywords">
         <a href="<?php echo base_url("admin/keywords/$projectid");?>" id="keywordsLink">KEYWORDS</a>
@@ -71,55 +72,35 @@
 <input type="hidden" id="project_id" name="project_id" value="<?php echo $selected_project['project_id'] ?? ''; ?>">
     <div class="form-group">
         <div class="row">
-            <div class="col-md-3">
-                <label for="keywordSelect">Keywords</label>
-                <select class="form-control" id="keywordSelect" name="keyword">
-                    <option selected disabled>Select your keyword</option>
-                    <!-- Options will be populated dynamically via AJAX -->
-                </select>
+        <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                 
+                  <div class="table-responsive pt-3">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sr.No</th>
+                <th>Keywords</th>
+                <th>Ranking</th>
+            </tr>
+        </thead>
+        <tbody id="rankingTableBody">
+            <tr>
+                <td colspan="3">Select a project to view data</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+                </div>
+              </div>
             </div>
-            <div class="col-md-3">
-                <label for="yearSelect">Year</label>
-                <select class="form-control" id="yearSelect" name="year">
-                    <option selected disabled>Select Year</option>
-                    <option>2024</option>
-                    <option>2023</option>
-                    <option>2022</option>
-                    <option>2021</option>
-                    <option>2020</option>
-                    <option>2019</option>
-                    <option>2018</option>
-                    <option>2017</option>
-                    <option>2016</option>
-                    <option>2015</option>
-                    <option>2014</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="monthSelect">Month</label>
-                <select class="form-control" id="monthSelect" name="month">
-                    <option selected disabled>Select Month</option>
-                    <option>January</option>
-                    <option>February</option>
-                    <option>March</option>
-                    <option>April</option>
-                    <option>May</option>
-                    <option>June</option>
-                    <option>July</option>
-                    <option>August</option>
-                    <option>September</option>
-                    <option>October</option>
-                    <option>November</option>
-                    <option>December</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="rankingInput">Ranking</label>
-                <input type="text" class="form-control" id="rankingInput" name="ranking" placeholder="Enter Ranking" required>
-            </div>
+           
+          
         </div>
         <button type="button" id="submitRanking" class="btn btn-primary me-2">Submit</button>
-        <button type="button" id="updateButton" class="btn btn-warning" style="display: none;">Update</button>
+       <button type="button" id="updateRanking" class="btn btn-warning" style="display: none;">Update</button>
     </div>
 </form>
 
@@ -134,6 +115,8 @@
                 <div class="card-body">
                     <h4 class="card-title">Keywords Data</h4>
                     <div class="table-responsive">
+                  
+
                     <table class="table table-bordered newbt" id="rankingTabledatatable">
                     <thead>
                         <tr>
@@ -141,8 +124,7 @@
                             <th>Keywords</th>
                             <th>Ranking</th>
 
-                            <th>Created on</th>
-                            <th>Updated on</th>
+                           
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -202,89 +184,96 @@ $(document).ready(function () {
 
 
 
-// 
 
-// 
 
-function getkeywords(selectedProjectId){
-    var project_id = selectedProjectId;
-    if (project_id) {
-            // AJAX request to fetch keywords based on selected project_id
-            $.ajax({
-                url: '<?php echo base_url("Google_ranking_data/get_keywords_by_project"); ?>', // Adjust this URL as per your controller's function
-                type: 'POST',
-                data: { project_id: project_id },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status === 'success') {
-                        // Clear the existing keywords in the dropdown
-                        var keywordSelect = $('#keywordSelect');
-                        keywordSelect.empty();
-                        
-                        // Append a default "Select Keyword" option
-                        keywordSelect.append('<option selected disabled>Select your keyword</option>');
-                        
-                        // Populate the dropdown with keywords
-                        $.each(response.keywords, function(index, keyword) {
-                            keywordSelect.append('<option value="' + keyword.id + '">' + keyword.keywords + '</option>');
-                        });
-                    } else {
-                        alert(response.message); // Show an error if no keywords found
-                    }
-                },
-                error: function() {
-                    alert('Error while fetching keywords. Please try again.');
-                }
-            });
-        } else {
-            // Reset the dropdown if no project is selected
-            $('#keywordSelect').empty().append('<option selected disabled>Select your keyword</option>');
-        }
 
-}
-$('#submitRanking').click(function() {
-        // Capture form data
-        var keyword = $('#keywordSelect').val();
-        var year = $('#yearSelect').val();
-        var month = $('#monthSelect').val();
-        var ranking = $('#rankingInput').val();
-        var project_id = $('#projectDropdownn').val();  // Assuming you have a project ID dropdown
 
-        // Validate the inputs
-        if (!keyword || !year || !month || !ranking || !project_id) {
-            alert("Please fill in all fields.");
-            return;
-        }
 
-        // Send the data via AJAX
-        $.ajax({
-            url: '<?php echo base_url('Google_ranking_data/insert_ranking_data'); ?>', // Update URL
-            type: 'POST',
-            data: {
-                keyword: keyword,
-                year: year,
-                month: month,
-                ranking: ranking,
-                project_id: project_id
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    alert('Data inserted successfully!');
-                    // Optionally, clear the form or do other UI updates here
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-            error: function() {
-                alert('Error while submitting data. Please try again.');
+    function getkeywords(projectId) {
+    if (!projectId) {
+        alert("Please select a project to view keywords.");
+        return;
+    }
+
+    $.ajax({
+        url: '<?php echo base_url("Google_ranking_data/fetch_keywords_by_project"); ?>/' + projectId,
+        method: "GET",
+        dataType: "json",
+        success: function (response) {
+            const rankingTableBody = $("#rankingTableBody");
+            rankingTableBody.empty(); // Clear the table body
+
+            if (response.status === "success" && response.data.length > 0) {
+                response.data.forEach((item, index) => {
+                    rankingTableBody.append(`
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.keywords}</td>
+                            <td>
+                                <input type="text" class="form-control" name="ranking[]" placeholder="Enter Ranking" required>
+                            </td>
+                        </tr>
+                    `);
+                });
+            } else {
+                rankingTableBody.append('<tr><td colspan="3">No keywords found for this project.</td></tr>');
             }
-        });
+        },
+        error: function () {
+            alert("Failed to fetch keywords. Please try again.");
+        },
+    });
+}
+
+
+
+$('#submitRanking').click(function () {
+    const projectId = $('#project_id').val(); // Get the project ID
+    const rankings = [];
+
+    // Collect data from the table
+    $('#rankingTableBody tr').each(function () {
+        const keyword = $(this).find('td:nth-child(2)').text().trim(); // Get the keyword text
+        const ranking = $(this).find('input[name="ranking[]"]').val().trim(); // Get the ranking value
+
+        if (keyword && ranking) {
+            rankings.push({ keyword, ranking });
+        }
     });
 
+    if (rankings.length === 0) {
+        alert('Please enter at least one ranking.');
+        return;
+    }
+
+    // Send data to the backend via AJAX
+    $.ajax({
+        url: '<?php echo base_url("Google_ranking_data/insert_rankings"); ?>',
+        method: 'POST',
+        data: {
+            project_id: projectId,
+            rankings: rankings
+        },
+        dataType: 'json',
+        success: function (response) {
+            if (response.status === 'success') {
+                alert('Rankings saved successfully!');
+                fetchrankingData(projectId); // Refresh the table data
+            } else {
+                alert(response.message || 'Failed to save rankings.');
+            }
+        },
+        error: function () {
+            alert('An error occurred. Please try again.');
+        }
+    });
+});
 
 
-    function fetchrankingData(projectId) {
+
+
+
+function fetchrankingData(projectId) {
     $.ajax({
         url: '<?php echo base_url("Google_ranking_data/get_ranking_data"); ?>/' + projectId,
         method: "GET",
@@ -295,25 +284,26 @@ $('#submitRanking').click(function() {
                 data.length
                     ? data
                           .map(
-                              (item, index) => ` 
-                              <tr>
-                                  <td>${index + 1}.</td>
-                                  <td>${item.keywords}</td> <!-- Display keyword name -->
-                                  <td>${item.ranking}</td>
-                                  <td>${item.created_at}</td>
-                                  <td>${item.updated_at}</td>
+                              (item, index) => `
+                              <tr data-id="${item.id}">
+                                  <td>${index + 1}</td>
+                                  <td>${item.keywords}</td>
+                                  <td class="ranking-cell">${item.ranking}</td>
                                   <td>
-                                     <button type="button" class="btn btn-sm btn-outline-success btn-icon-text edit-button" data-id="${item.id}">
-                                          <i class="mdi mdi-marker btn-icon-prepend"></i> EDIT
+                                      <button type="button" class="btn btn-sm btn-outline-success edit-button" data-id="${item.id}">
+                                          <i class="mdi mdi-marker"></i> Edit
                                       </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger btn-icon-text delete-button" data-id="${item.id}">
+
+                                  </td>
+                                  <td>
+                                  <button type="button" class="btn btn-sm btn-outline-danger btn-icon-text delete-button" data-id="${item.id}">
                                           <i class="mdi mdi-account-off btn-icon-prepend"></i> DELETE
                                       </button>
                                   </td>
-                              </tr>` 
+                              </tr>`
                           )
                           .join("")
-                    : '<tr><td colspan="8">No data available for this project.</td></tr>'
+                    : '<tr><td colspan="4">No data available for this project.</td></tr>'
             );
         },
         error: function () {
@@ -322,9 +312,131 @@ $('#submitRanking').click(function() {
     });
 }
 
+// Event: Click on Edit Button
+$(document).on("click", ".edit-button", function () {
+    const row = $(this).closest("tr");
+    const rankingCell = row.find(".ranking-cell");
+    const rankingValue = rankingCell.text().trim();
+    const id = row.data("id");
+
+    // Replace ranking text with input field
+    rankingCell.html(`<input type="text" class="form-control ranking-input" value="${rankingValue}" />`);
+
+    // Change Edit button to Update button
+    $(this).removeClass("edit-button btn-outline-success").addClass("update-button btn-outline-warning").html('<i class="mdi mdi-check"></i> Update');
+});
+
+// Event: Click on Update Button
+$(document).on("click", ".update-button", function () {
+    const row = $(this).closest("tr");
+    const rankingInput = row.find(".ranking-input");
+    const newRanking = rankingInput.val().trim();
+    const id = row.data("id");
+    const projectId = $("#project_id").val();
+
+    if (!newRanking) {
+        alert("Ranking cannot be empty.");
+        return;
+    }
+
+    // Send updated ranking to the server
+    $.ajax({
+        url: '<?php echo base_url("Google_ranking_data/update_ranking"); ?>',
+        method: "POST",
+        data: { id, ranking: newRanking, project_id: projectId },
+        dataType: "json",
+        success: function (response) {
+            if (response.status === "success") {
+                alert("Ranking updated successfully!");
+
+                // Replace input field with updated text
+                rankingInput.closest(".ranking-cell").text(newRanking);
+
+                // Change Update button back to Edit button
+                row.find(".update-button").removeClass("update-button btn-outline-warning").addClass("edit-button btn-outline-success").html('<i class="mdi mdi-marker"></i> Edit');
+            } else {
+                alert(response.message || "Failed to update ranking.");
+            }
+        },
+        error: function () {
+            alert("An error occurred while updating ranking.");
+        },
+    });
+});
 
 
-$(document).on('click', '.delete-button', function () {
+
+
+
+
+
+
+
+
+function fetchTableData(projectId) {
+        $.ajax({
+            url: '<?php echo base_url("Google_ranking_data/get_ranking_by_project"); ?>/' + projectId,
+            method: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === 'success') {
+                    let tableRows = '';
+                    response.data.forEach((item, index) => {
+                        tableRows += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${item.keywords}</td>
+                                <td>
+                                    <input type="text" class="form-control ranking-input" data-id="${item.id}" value="${item.ranking}">
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    $('#rankingTableBody').html(tableRows);
+                } else {
+                    $('#rankingTableBody').html('<tr><td colspan="3">No data found for the selected project.</td></tr>');
+                }
+            },
+            error: function () {
+                alert('Failed to fetch data.');
+            },
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // 
+    $(document).on('click', '.delete-button', function () {
     const id = $(this).data('id');
     if (confirm('Are you sure you want to delete this data?')) {
         $.ajax({
@@ -346,89 +458,6 @@ $(document).on('click', '.delete-button', function () {
     }
 });
 
-// 
-$(document).on("click", ".edit-button", function () {
-    const id = $(this).data("id"); // Get ID from button's data attribute
-    $.ajax({
-        url: '<?php echo base_url("Google_ranking_data/get_ranking_data_by_id"); ?>/' + id,
-        method: "GET",
-        dataType: "json",
-        success: function (response) {
-            if (response.error) {
-                alert(response.error);
-                return;
-            }
-
-            // Populate the form fields with the fetched data
-            $("#entryId").val(response.id); // Set the unique ID
-            $("#keywordSelect").val(response.keywords); // Populate the keyword dropdown
-            $("#rankingInput").val(response.ranking); // Populate the ranking field
-            $("#yearSelect").val(response.year); // Populate the year field
-            $("#monthSelect").val(response.month); // Populate the month field
-
-            // Switch to update mode
-            $("#submitButton").hide(); // Hide the submit button
-            $("#updateButton").show(); // Show the update button
-        },
-        error: function () {
-            alert("Failed to fetch data for editing.");
-        },
-    });
 });
 
-
-$("#updateButton").click(function () {
-    const entryId = $("#entryId").val(); // Get the unique ID
-    const projectId = $("#project_id").val(); // Get the project ID
-
-    if (!entryId) {
-        alert("No data selected for update.");
-        return;
-    }
-
-    // Prepare data for update
-    const formData = $("#rankingForm").serializeArray();
-    let data = {};
-
-    // Convert the serialized data into an object
-    $.each(formData, function (i, field) {
-        data[field.name] = field.value;
-    });
-
-    // Ensure the data uses the correct column names
-    data['keywords'] = $("#keywordSelect").val(); // Get the value of the selected keyword from the dropdown
-    data['ranking'] = $("#rankingInput").val(); // Get the ranking input value
-
-    // If 'keywordSelect' is part of the serialized data, ensure we update it as 'keywords'
-    // Send the AJAX request with the updated data
-    $.ajax({
-        url: '<?php echo base_url("Google_ranking_data/update_ranking_data"); ?>',
-        method: "POST",
-        data: data, // Send the updated data
-        dataType: "json",
-        success: function (response) {
-            if (response.status === "success") {
-                alert("Data updated successfully!");
-                fetchkeywordsData(projectId); // Refresh the table
-                resetForm(); // Reset the form
-            } else {
-                alert(response.message || "Failed to update data.");
-            }
-        },
-        error: function () {
-            alert("Failed to update data.");
-        },
-    });
-});
-
-
-
-function resetForm() {
-    $("#rankingForm")[0].reset(); // Reset the form
-    $("#entryId").val(""); // Clear the unique ID
-    $("#submitButton").show(); // Show the submit button
-    $("#updateButton").hide(); // Hide the update button
-}
-
-});
 </script>
